@@ -7,4 +7,5 @@ public interface ConsoleLoginInterface {
 
     public void signUp();
 
+    public void startApp();
 }
