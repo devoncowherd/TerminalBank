@@ -1,53 +1,56 @@
 package shared;
 
-public class Formatter {
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
-    //TODO: Set pattern and matcher
+public class Formatter {
 
     private String nameRegex = "^[a-Z]{1-25}$";
     private String socialRegex =" ^(?!000|666)[0-8][0-9]{2}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}$";
     private String emailRegex = "(?:^|\\s)[\\w!#$%&'*+/=?^`{|}~-](\\.?[\\w!#$%&'*+/=?^`{|}~-]+)*@\\w+[.-]?\\w*\\.[a-zA";
-    private String phoneRegex = "(?:(?:\\+?1[-.\\s])?\\(?\\d{3}\\)?[-.\\s])?\\d{3}[-.\\s]\\d{4}(?:\\s(?:x|#|[eE]xt[.]?|[eE]xtension){1} ?\\d{1,7})?\\b\n"
     private String addressRegex = "\\d{1,5}(\\s[\\w-.,]*){1,6},\\s[A-Z]{2}\\s\\d{5}\\b\n";
-    private String dateOfBirthRegex = "(?:0[1-9]|[12][0-9]|3[01])[-/.](?:0[1-9]|1[012])[-/.](?:19\d{2}|20[01][0-9]|2020)\b"
-    private String zipRegex = "";
-    private String usernameRegex = "";
+    private String dateOfBirthRegex = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])";
+    private String zipRegex = "(^\\d{5}$)|(^\\d{9}$)|(^\\d{5}-\\d{4}$)";
+    private String usernameRegex = "^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]$";
 
-    public static boolean validateName(String name) {
+    public boolean validateName(String name) {
+        return comparePattern(this.nameRegex, name);
+    }
+
+    public boolean validateSocial(String social) {
+        return comparePattern(this.socialRegex, social);
+    }
+
+    public boolean validateDateOfBirth(String dateOfBirth) {
+        return comparePattern(this.dateOfBirthRegex, dateOfBirth);
+    }
+
+    public boolean validateAddress(String address) {
+        return comparePattern(this.addressRegex, address);
+    }
+
+    public boolean validateZip(String zip){
+        return comparePattern(this.zipRegex,zip);
+    }
+
+    public boolean validateEmail(String email){
+        return comparePattern(this.emailRegex,email);
+    }
+
+    public boolean validatePhone(String phoneNumber){
+        phoneNumber.replaceAll( "[^\\d]", "" );
+        if(phoneNumber.length() == 10) {
+            return true;
+        }
         return false;
     }
 
-    public static boolean validateSocial(String social) {
-        return false;
+    public boolean validateUsername(String username){
+        return comparePattern(this.usernameRegex,username);
     }
 
-    public static boolean validateDateOfBirth(String dateOfBirth) {
-        return false;
+    public boolean comparePattern(String pattern, String input){
+        return Pattern.compile(pattern).matcher(input).matches();
     }
-
-    public static boolean validateAddress(String address) {
-        return false;
-    }
-
-    public static boolean validateZip(String zip){
-        return false;
-    }
-
-    public static boolean validateEmail(String email){
-        return false;
-    }
-
-    public static boolean validatePhone(String email){
-        return false;
-    }
-
-    public static boolean validateUsername(String username){
-        return false;
-    }
-
-
-
-
-
 
 }
