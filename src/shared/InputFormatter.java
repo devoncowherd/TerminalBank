@@ -1,9 +1,8 @@
 package shared;
 
 import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
-public class Formatter {
+public class InputFormatter {
 
     private String nameRegex = "^[a-Z]{1-25}$";
     private String socialRegex =" ^(?!000|666)[0-8][0-9]{2}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}$";
