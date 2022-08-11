@@ -1,5 +1,6 @@
 package ui.login;
 
+import data.Candidate;
 import ui.styling.Style;
 
 import java.util.InputMismatchException;
@@ -31,7 +32,8 @@ public class ConsoleLoginImpl implements ConsoleLoginInterface {
     }
 
     @Override
-    public void signUp(){
+    public void signUp() {
+        Candidate candidate = new Candidate();
 
     }
 
