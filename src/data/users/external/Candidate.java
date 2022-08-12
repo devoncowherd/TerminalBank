@@ -1,4 +1,4 @@
-package data;
+package data.users.external;
 
 import shared.InputFormatter;
 
@@ -79,7 +79,7 @@ public class Candidate {
                 if(userInput == 0 || userInput == 1){
                     checkedForMiddle = true;
                     if(userInput == 0){
-                        String middleName
+                        String middleName;
                         scan.close();
                         return true;
                     }

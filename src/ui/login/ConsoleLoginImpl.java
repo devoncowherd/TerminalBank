@@ -1,6 +1,8 @@
 package ui.login;
 
-import data.Candidate;
+import data.users.external.Candidate;
+import data.Customer;
+import data.users.internal.Employee;
 import ui.styling.Style;
 
 import java.util.InputMismatchException;
@@ -43,10 +45,7 @@ public class ConsoleLoginImpl implements ConsoleLoginInterface {
             try {
                 Scanner scan = new Scanner(System.in);
                 byte userInput = scan.nextByte();
-
-                if(userInput == 3){
-                    closeProgram();
-                }
+                processChoice(userInput);
 
                 if(checkResponseInRange(
                         userInput)) {
@@ -83,8 +82,36 @@ public class ConsoleLoginImpl implements ConsoleLoginInterface {
         giveUserTypeOptions();
     }
 
-    public void closeProgram(){
-        System.out.println("Thanks for Banking with Cowherd!\nClosing Application...");
-        System.exit(0);
+    public void closeProgram(byte userInput){
+        if(userInput == 3){
+            System.out.println("Thanks for Banking with Cowherd!\nClosing Application...");
+            System.exit(0);
+        }
+    }
+    public void startSignUp(byte userInput){
+        if(userInput == 2){
+            Candidate candidate = new Candidate();
+            candidate.generateForm();
+        }
+    }
+
+    public void startEmployeeSignIn(byte userInput){
+        if(userInput == 2){
+            Employee employee = new Employee();
+            employee.login();
+        }
+    }
+
+
+    public void startCustomerSignIn(byte userInput){
+        Customer customer = new Customer();
+        customer.login();
+    }
+
+    public void processChoice(byte userInput){
+        closeProgram(userInput);
+        startSignUp(userInput);
+        startEmployeeSignIn(userInput);
+        startCustomerSignIn(userInput);
     }
 }
