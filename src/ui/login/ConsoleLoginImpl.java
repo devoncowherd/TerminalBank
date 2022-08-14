@@ -2,7 +2,6 @@ package ui.login;
 
 import data.users.external.Candidate;
 import data.Customer;
-import data.users.internal.Employee;
 import ui.styling.Style;
 
 import java.util.InputMismatchException;
@@ -95,23 +94,9 @@ public class ConsoleLoginImpl implements ConsoleLoginInterface {
         }
     }
 
-    public void startEmployeeSignIn(byte userInput){
-        if(userInput == 2){
-            Employee employee = new Employee();
-            employee.login();
-        }
-    }
-
-
-    public void startCustomerSignIn(byte userInput){
-        Customer customer = new Customer();
-        customer.login();
-    }
 
     public void processChoice(byte userInput){
         closeProgram(userInput);
         startSignUp(userInput);
-        startEmployeeSignIn(userInput);
-        startCustomerSignIn(userInput);
     }
 }

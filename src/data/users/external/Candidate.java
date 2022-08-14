@@ -1,10 +1,11 @@
 package data.users.external;
 
 import shared.InputFormatter;
+import shared.RegisteredPerson;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
-public class Candidate {
+public class Candidate extends RegisteredPerson {
 
     InputFormatter formatter = new InputFormatter();
     public Candidate(){
@@ -51,7 +52,7 @@ public class Candidate {
         return this.lastName;
     }
 
-    public void setMiddleName() {
+    public void setMiddleName(String middleName) {
         if(checkHasMiddleName()){
             Scanner scan = new Scanner(System.in);
             while(this.middleName == null) {

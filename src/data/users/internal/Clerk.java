@@ -1,4 +1,8 @@
 package data.users.internal;
 
-public class Clerk {
+import shared.RegisteredPerson;
+
+public class Clerk extends Employee {
+
+
 }
