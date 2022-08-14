@@ -1,4 +1,11 @@
 package data.users.external;
 
-public class Customer {
+import shared.RegisteredPerson;
+
+public class Customer extends RegisteredPerson {
+
+    @Override
+    public void login(){
+
+    };
 }

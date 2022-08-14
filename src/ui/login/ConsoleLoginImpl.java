@@ -1,9 +1,9 @@
 package ui.login;
 
 import data.users.external.Candidate;
-import data.Customer;
+import data.users.external.Customer;
+import data.users.internal.Employee;
 import ui.styling.Style;
-
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -48,8 +48,8 @@ public class ConsoleLoginImpl implements ConsoleLoginInterface {
 
                 if(checkResponseInRange(
                         userInput)) {
-                    userType = userInput;
                     userTypeNotSet = false;
+                    processChoice(userInput);
                     scan.close();
                 }
             } catch(InputMismatchException e) {
@@ -94,9 +94,25 @@ public class ConsoleLoginImpl implements ConsoleLoginInterface {
         }
     }
 
+    public void loginEmployee(byte userInput){
+        if(userInput == 1){
+            Employee employee = new Employee();
+            employee.login();
+        }
+    }
+
+    public void loginCustomer(byte userInput){
+        if(userInput == 0){
+            Customer customer = new Customer();
+            customer.login();
+        }
+    }
+
 
     public void processChoice(byte userInput){
         closeProgram(userInput);
         startSignUp(userInput);
+        loginEmployee(userInput);
+        loginCustomer(userInput);
     }
 }

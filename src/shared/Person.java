@@ -11,40 +11,39 @@ public interface Person {
     String email = null;
     String phoneNumber = null;
 
-    public void setFirstName(String firstName);
+    public void setFirstName();
     public String getFirstName();
 
-    public void setLastName(String lastName);
+    public void setLastName();
     public String getLastName();
 
-    public void setMiddleName(String middleName);
+    public void setMiddleName();
 
     public String getMiddleName();
 
-    public void setSocial(String social);
+    public void setSocial();
 
     public String getSocial();
 
-    public void setDateOfBirth(String dateOfBirth);
+    public void setDateOfBirth();
 
     public String getDateOfBirth();
 
-    public void setAddress(String address);
+    public void setAddress();
 
     public String getAddress();
 
-    public void setZipCode(String zipCode);
+    public void setZipCode();
 
     public String getZipCode();
 
-    public void setEmail(String email);
+    public void setEmail();
 
     public String getEmail();
 
-    public void setPhoneNumber(String phoneNumber);
+    public void setPhoneNumber();
 
     public String getPhoneNumber();
 
-    public void login();
-    public void logout();
+
 }
