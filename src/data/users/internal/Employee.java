@@ -7,6 +7,15 @@ import java.sql.SQLException;
 
 public class Employee extends RegisteredPerson {
 
+    Connection connection = null;
+
+    if(connection == null){
+        try{
+            connection =        DriverManager.getConnection("jdbc:mysql://localhost:3306/cowherd_bank", "root", );
+
+        }
+    }
+
     @Override
     public void login(){
 
