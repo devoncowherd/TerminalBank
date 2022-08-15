@@ -6,13 +6,14 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Employee extends RegisteredPerson {
-
     Connection connection = null;
 
     if(connection == null){
         try{
-            connection =        DriverManager.getConnection("jdbc:mysql://localhost:3306/cowherd_bank", "root", );
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/cowherd_bank", "root", TopSecretFile.getDbPassword());
 
+        } catch(SQLException e){
+            e.printStackTrace();
         }
     }
 

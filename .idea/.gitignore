@@ -4,4 +4,4 @@
 .gitignore
 /.gitignore
 TopSecretFile.java
-../src/TopSecretFile.java
+../src/data/users/internal/TopSecretFile.java
