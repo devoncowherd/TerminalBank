@@ -39,16 +39,14 @@ public class ConsoleLoginImpl implements ConsoleLoginInterface {
     }
 
     public void validateTypeInput(){
-        while(userTypeNotSet){
+        while(this.userTypeNotSet){
             prompt();
             try {
                 Scanner scan = new Scanner(System.in);
                 byte userInput = scan.nextByte();
-                processChoice(userInput);
-
                 if(checkResponseInRange(
                         userInput)) {
-                    userTypeNotSet = false;
+                    this.userTypeNotSet = false;
                     processChoice(userInput);
                     scan.close();
                 }

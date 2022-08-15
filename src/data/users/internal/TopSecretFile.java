@@ -4,7 +4,7 @@ public class TopSecretFile {
 
     private static String dbPassword = "ErinLessThan3!";
 
-    protected static String getDbPassword(){
+    public static String getDbPassword(){
         return dbPassword;
     }
 }
