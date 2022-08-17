@@ -4,9 +4,9 @@ import java.util.regex.Pattern;
 
 public class InputFormatter {
 
-    private String nameRegex = "^[a-Z]{1-25}$";
+    private String nameRegex = "^[A-Z]{1,25}$";
     private String socialRegex =" ^(?!000|666)[0-8][0-9]{2}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}$";
-    private String emailRegex = "(?:^|\\s)[\\w!#$%&'*+/=?^`{|}~-](\\.?[\\w!#$%&'*+/=?^`{|}~-]+)*@\\w+[.-]?\\w*\\.[a-zA";
+    private String emailRegex = "(?:^|\\s)[\\w!#$%&'*+/=?^`{|}~-](\\.?[\\w!#$%&'*+/=?^`{|}~-]+)*@\\w+[.-]?\\w*\\.[a-zA-Z]{2,3}\\b";
     private String addressRegex = "\\d{1,5}(\\s[\\w-.,]*){1,6},\\s[A-Z]{2}\\s\\d{5}\\b\n";
     private String dateOfBirthRegex = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])";
     private String zipRegex = "(^\\d{5}$)|(^\\d{9}$)|(^\\d{5}-\\d{4}$)";

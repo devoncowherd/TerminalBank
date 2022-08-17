@@ -24,5 +24,11 @@ interface SignUpInterface {
     public void askUsername();
 
     public void askAccountType();
+
+    public void askPassword();
+
+    public void createCandidate();
+
 }
+
 

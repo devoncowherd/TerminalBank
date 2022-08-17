@@ -3,19 +3,15 @@ package data.users.external;
 import data.users.internal.TopSecretFile;
 import shared.RegisteredPerson;
 import ui.login.ConsoleLoginImpl;
-
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.sql.*;
 
 public class Customer extends RegisteredPerson {
     Scanner scan = new Scanner(System.in);
-
+    CustomerDao customerDao = new CustomerDao();
     @Override
     public void login() {
-        String dbURL = "jdbc:mysql://localhost:3306/cowherd_bank";
-        String dbUsername = "root";
-        String loginQuery = "SELECT * FROM customer WHERE email = (?);";
         //String test = "SELECT * FROM employee";
         boolean successfulLog = false;
 
@@ -26,17 +22,18 @@ public class Customer extends RegisteredPerson {
                 System.out.println("Please input your password.");
                 String customerPassword = scan.nextLine();
 
-                Connection connection = DriverManager.getConnection(dbURL, dbUsername, TopSecretFile.getDbPassword());
-                PreparedStatement preparedStatement = connection.prepareStatement(loginQuery);
-                preparedStatement.setString(1, customerEmail);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                if (customerDao.refreshResult(customerEmail).getString("password").equals(customerPassword)) {
+                    if(customerDao.refreshResult(customerEmail).getBoolean("active")){
+                        successfulLog = true;
+                        setCustomer(customerDao.refreshResult(customerEmail), customerEmail);
+                        System.out.println("You successfully logged in!");
+                        getCustomerOptions(customerEmail);
+                    } else {
+                        System.out.println("Account is inactive or in approval process.\nContact your local branch for further assistance.");
+                        ConsoleLoginImpl console = new ConsoleLoginImpl();
+                        console.startApp();
+                    }
 
-                resultSet.next();
-                if (resultSet.getString("password").equals(customerPassword)) {
-                    successfulLog = true;
-                    setCustomer(resultSet, customerEmail);
-                    System.out.println("You successfully logged in!");
-                    getCustomerOptions(resultSet, customerEmail, connection);
                 } else {
                     System.out.println("Either the account doesn't exist, or the credentials do not match.\nPlease check details and try again.");
                 }
@@ -54,7 +51,9 @@ public class Customer extends RegisteredPerson {
 
         try {
             setFirstName(resultSet.getString("first_name"));
+            setEmail(resultSet.getString("email"));
             System.out.println("Welcome, " + this.firstName + "!");
+
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -64,9 +63,10 @@ public class Customer extends RegisteredPerson {
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
+    public void setEmail(String email) {this.email = email; }
 
-    public void showCheckingBalance(ResultSet resultSet, String email){
-        String queryCurrentBalance = "SELECT checking_balance WHERE email = \'" +  email + "\'";
+    public void showCheckingBalance(ResultSet resultSet, String customerEmail){
+        String queryCurrentBalance = "SELECT checking_balance WHERE email = \'" +  customerEmail + "\'";
         try {
             System.out.println("Your current balance is " + resultSet.getString("checking_balance"));
         } catch(SQLException e){
@@ -74,22 +74,17 @@ public class Customer extends RegisteredPerson {
         }
     }
 
-    public void getCustomerOptions(ResultSet resultSet, String email,Connection connection){
+    public void getCustomerOptions(String customerEmail){
 
         boolean run = true;
         while(run){
-            System.out.println("• Checking Balance: 0\n• Deposit : 1\n• Withdraw : 2\n• Logout: 3");
+            System.out.println("• Checking Balance: 0\n• Deposit : 1\n• Withdraw : 2\n• Logout: 3\n• Transfer Money : 4");
             try{
                 byte userInput = scan.nextByte();
-                if(userInput == 3){
-                    try{
-                        connection.close();
-                    } catch(SQLException e){
-                        e.printStackTrace();
-                    }
+                if(userInput == 3) {
                     run = false;
                 }
-                processChoice(resultSet, email, userInput);
+                processChoice(customerDao.refreshResult(customerEmail), customerEmail, userInput);
             } catch(InputMismatchException e){
                 e.printStackTrace();
             }
@@ -101,18 +96,19 @@ public class Customer extends RegisteredPerson {
             showCheckingBalance(resultSet, email);
         } else if(userInput == 1) {
            depositChecking(resultSet, email);
-
         } else if(userInput == 2) {
             withdrawChecking(resultSet,email);
         } else if(userInput == 3) {
             ConsoleLoginImpl console = new ConsoleLoginImpl();
             console.startApp();
+        } else if(userInput == 4){
+            transferMoney(email);
         }
         //withdrawChecking(connection, email)
     }
 
 
-    public void depositChecking(ResultSet resultSet, String email){
+    public void depositChecking(ResultSet resultSet, String customerEmail){
         boolean validDeposit = false;
         while(validDeposit == false) {
             try {
@@ -120,16 +116,16 @@ public class Customer extends RegisteredPerson {
                 int userInput = scan.nextInt();
                 validDeposit = validateDeposit(userInput);
                 if(validDeposit) {
-                    processDeposit(userInput,resultSet,email);
+                    processDeposit(userInput,resultSet,customerEmail);
                 }
             } catch (InputMismatchException e) {
                 e.printStackTrace();
-                depositChecking(resultSet,email);
+                depositChecking(resultSet,customerEmail);
             }
         }
     }
 
-    public void withdrawChecking(ResultSet resultSet, String email){
+    public void withdrawChecking(ResultSet resultSet, String customerEmail){
         boolean validWithdraw = false;
         while(validWithdraw == false){
             System.out.println("How much would you like to withdraw?");
@@ -137,7 +133,7 @@ public class Customer extends RegisteredPerson {
                 int userInput = scan.nextInt();
                 validWithdraw = validateWithdraw(resultSet, userInput);
                 if(validWithdraw){
-                    processWithdraw(userInput, resultSet, email);
+                    processWithdraw(userInput, customerDao.refreshResult(customerEmail), customerEmail);
                 }
             } catch (InputMismatchException e) {
                     e.printStackTrace();
@@ -154,7 +150,10 @@ public class Customer extends RegisteredPerson {
             }
 
             if(withdrawAmount <= -1){
-                System.out.println("Invalid Total");
+                System.out.println("Invalid Withdraw");
+                return false;
+            }
+            if(withdrawAmount > currentBalance){
                 return false;
             }
         } catch(SQLException e){
@@ -169,23 +168,23 @@ public class Customer extends RegisteredPerson {
         return false;
     }
 
-    public void processDeposit(int depositAmount, ResultSet resultSet, String email) {
+    public void processDeposit(int depositAmount, ResultSet resultSet, String customerEmail) {
         try{
             String dbURL = "jdbc:mysql://localhost:3306/cowherd_bank";
             String dbUsername = "root";
             Connection connection = DriverManager.getConnection(dbURL, dbUsername, TopSecretFile.getDbPassword());
             int currentTotal = resultSet.getInt("checking_balance");
             int newTotal = currentTotal + depositAmount;
-            String depositStatement = "UPDATE customer SET checking_balance =\'" + newTotal + "\' WHERE email = \'" + email + "\'";
+            String depositStatement = "UPDATE customer SET checking_balance =\'" + newTotal + "\' WHERE email = \'" + customerEmail + "\'";
             connection.createStatement().executeUpdate(depositStatement);
-            System.out.println("Your New Checking Balance is: " + resultSet.getInt("checking_balance"));
+            System.out.println("Your New Checking Balance is: " + customerDao.refreshResult(customerEmail).getInt("checking_balance"));
             connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public void processWithdraw(int withdrawAmount, ResultSet resultSet,String email){
+    public void processWithdraw(int withdrawAmount, ResultSet resultSet,String customerEmail){
         try{
             String dbURL = "jdbc:mysql://localhost:3306/cowherd_bank";
             String dbUsername = "root";
@@ -195,9 +194,62 @@ public class Customer extends RegisteredPerson {
             System.out.println(withdrawAmount);
             String depositStatement = "UPDATE customer SET checking_balance =\'" + newTotal + "\' WHERE email = \'" + email + "\'";
             connection.createStatement().executeUpdate(depositStatement);
-            System.out.println("Your New Checking Balance is: " + resultSet.getInt("checking_balance"));
+            System.out.println("Your New Checking Balance is: " + customerDao.refreshResult(customerEmail).getInt("checking_balance"));
             connection.close();
         } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void transferMoney(String customerEmail){
+        String customerBalanceQuery = "SELECT checking_balance FROM customer WHERE email =\'" + customerEmail + "\'" ;
+        String recipientBalanceQuery = "SELECT checking_balance FROM customer WHERE email =\'" + customerEmail + "\'" ;
+
+        try{
+            String dbURL = "jdbc:mysql://localhost:3306/cowherd_bank";
+            String dbUsername = "root";
+            Connection connection = DriverManager.getConnection(dbURL, dbUsername, TopSecretFile.getDbPassword());
+
+            int recipientID = -1;
+            while(recipientID == -1){
+                try{
+                    System.out.println("What is the ID of the account would you like to transfer money to?");
+                    recipientID = scan.nextInt();
+                } catch(InputMismatchException e){
+                    System.out.println("Invalid Input");
+                }
+            }
+
+            ResultSet customerResultSet = connection.createStatement().executeQuery(recipientBalanceQuery);
+            customerResultSet.next();
+
+            ResultSet recipientResultSet = connection.createStatement().executeQuery(customerBalanceQuery);
+            recipientResultSet.next();
+
+            int customerAccountBalance = customerResultSet.getInt("checking_balance");
+            int sendingAmount = -1;
+
+            int recipientAccountBalance = recipientResultSet.getInt("checking_balance");
+
+
+            while(sendingAmount == -1){
+                try{
+                    System.out.println("What is the amount you would like to transfer?");
+                    sendingAmount = scan.nextInt();
+                    if(sendingAmount > 0 && sendingAmount <= customerAccountBalance){
+                        int recipientNewBalance = sendingAmount + recipientAccountBalance;
+                        int customerNewBalance = customerAccountBalance - sendingAmount;
+                        String recipientUpdate = "UPDATE customer SET checking_balance = " + recipientNewBalance + " WHERE customer_id = " + recipientID;
+                        String customerUpdate = "UPDATE customer SET checking_balance = " + customerNewBalance + " WHERE email = \'" + customerEmail + "\'";
+                        connection.createStatement().executeUpdate(recipientUpdate);
+                        connection.createStatement().executeUpdate(customerUpdate);
+                    }
+                } catch(InputMismatchException e){
+                    e.printStackTrace();
+                }
+            }
+            connection.close();
+        } catch(Exception e){
             e.printStackTrace();
         }
     }

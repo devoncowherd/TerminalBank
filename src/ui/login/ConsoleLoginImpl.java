@@ -17,7 +17,6 @@ public class ConsoleLoginImpl implements ConsoleLoginInterface {
 
     @Override
     public void startApp() {
-        System.out.println("...Script Loaded");
         welcomeUser();
         validateTypeInput();
     }
@@ -87,8 +86,8 @@ public class ConsoleLoginImpl implements ConsoleLoginInterface {
     }
     public void startSignUp(byte userInput){
         if(userInput == 2){
-            Candidate candidate = new Candidate();
-            candidate.generateForm();
+            SignUpImpl signUp = new SignUpImpl();
+            signUp.generateForm();
         }
     }
 
