@@ -1,6 +1,7 @@
 package data.users.external;
 
 import data.users.internal.TopSecretFile;
+import data.users.internal.TransactionLogger;
 import shared.RegisteredPerson;
 import ui.login.ConsoleLoginImpl;
 import java.util.InputMismatchException;
@@ -8,8 +9,10 @@ import java.util.Scanner;
 import java.sql.*;
 
 public class Customer extends RegisteredPerson {
+
     Scanner scan = new Scanner(System.in);
     CustomerDao customerDao = new CustomerDao();
+    TransactionLogger transactionLogger = new TransactionLogger();
     @Override
     public void login() {
         //String test = "SELECT * FROM employee";
@@ -39,7 +42,7 @@ public class Customer extends RegisteredPerson {
                 }
 
             } catch (SQLException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 System.out.println("Either the account doesn't exist, or the credentials do not match.\nPlease check details and try again.");
             }
         }
@@ -177,6 +180,7 @@ public class Customer extends RegisteredPerson {
             int newTotal = currentTotal + depositAmount;
             String depositStatement = "UPDATE customer SET checking_balance =\'" + newTotal + "\' WHERE email = \'" + customerEmail + "\'";
             connection.createStatement().executeUpdate(depositStatement);
+            transactionLogger.logDeposit(customerEmail,depositAmount);
             System.out.println("Your New Checking Balance is: " + customerDao.refreshResult(customerEmail).getInt("checking_balance"));
             connection.close();
         } catch (SQLException e) {
@@ -194,6 +198,7 @@ public class Customer extends RegisteredPerson {
             System.out.println(withdrawAmount);
             String depositStatement = "UPDATE customer SET checking_balance =\'" + newTotal + "\' WHERE email = \'" + email + "\'";
             connection.createStatement().executeUpdate(depositStatement);
+            transactionLogger.logWithdraw(customerEmail,withdrawAmount);
             System.out.println("Your New Checking Balance is: " + customerDao.refreshResult(customerEmail).getInt("checking_balance"));
             connection.close();
         } catch (SQLException e) {
@@ -203,27 +208,32 @@ public class Customer extends RegisteredPerson {
 
     public void transferMoney(String customerEmail){
         String customerBalanceQuery = "SELECT checking_balance FROM customer WHERE email =\'" + customerEmail + "\'" ;
-        String recipientBalanceQuery = "SELECT checking_balance FROM customer WHERE email =\'" + customerEmail + "\'" ;
+        String recipientBalanceQuery = null;
 
         try{
             String dbURL = "jdbc:mysql://localhost:3306/cowherd_bank";
             String dbUsername = "root";
             Connection connection = DriverManager.getConnection(dbURL, dbUsername, TopSecretFile.getDbPassword());
+            String customerIdQuery = "SELECT customer_id FROM customer WHERE email = \'" + customerEmail + "\'";
+            ResultSet idResult =  connection.createStatement().executeQuery(customerIdQuery);
+            idResult.next();
+            int customerID = idResult.getInt("customer_id");
 
             int recipientID = -1;
             while(recipientID == -1){
                 try{
                     System.out.println("What is the ID of the account would you like to transfer money to?");
                     recipientID = scan.nextInt();
+                    recipientBalanceQuery = "SELECT checking_balance FROM customer WHERE customer_id =\'" + recipientID + "\'" ;
                 } catch(InputMismatchException e){
                     System.out.println("Invalid Input");
                 }
             }
 
-            ResultSet customerResultSet = connection.createStatement().executeQuery(recipientBalanceQuery);
+            ResultSet customerResultSet = connection.createStatement().executeQuery(customerBalanceQuery);
             customerResultSet.next();
 
-            ResultSet recipientResultSet = connection.createStatement().executeQuery(customerBalanceQuery);
+            ResultSet recipientResultSet = connection.createStatement().executeQuery(recipientBalanceQuery);
             recipientResultSet.next();
 
             int customerAccountBalance = customerResultSet.getInt("checking_balance");
@@ -243,6 +253,10 @@ public class Customer extends RegisteredPerson {
                         String customerUpdate = "UPDATE customer SET checking_balance = " + customerNewBalance + " WHERE email = \'" + customerEmail + "\'";
                         connection.createStatement().executeUpdate(recipientUpdate);
                         connection.createStatement().executeUpdate(customerUpdate);
+                        transactionLogger.logTransfer(customerID,recipientID,(-1)*(sendingAmount),sendingAmount);
+                        System.out.println("Transfer successfully processed!");
+                    } else {
+                        System.out.println("Something went wrong! Check your balance and try again");
                     }
                 } catch(InputMismatchException e){
                     e.printStackTrace();

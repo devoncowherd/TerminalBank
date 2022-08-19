@@ -15,4 +15,11 @@ public class Style {
         }
         System.out.println("");
     }
+
+    public static void dash(){
+        for(int i = 0; i < 25; ++i){
+            System.out.print("-");
+        }
+        System.out.println("");
+    }
 }

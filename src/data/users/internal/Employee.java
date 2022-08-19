@@ -10,6 +10,7 @@ import java.util.Scanner;
 public class Employee extends RegisteredPerson {
 
     Scanner scan = new Scanner(System.in);
+    Style style = new Style();
     String dbURL = "jdbc:mysql://localhost:3306/cowherd_bank";
     String dbUsername = "root";
     String loginQuery = "SELECT * FROM employee WHERE email = (?);";
@@ -17,6 +18,22 @@ public class Employee extends RegisteredPerson {
     String checkingUpdate = "UPDATE customer SET checking_balance = (?) WHERE email = (?)";
     String candidateQuery = "SELECT * FROM customer WHERE active = 0";
     String customerQuery = "SELECT * FROM customer WHERE email = (?)";
+    String customerAccountQuery = "SELECT * FROM customer WHERE email = (?);";
+    String allTransactionQuery = "SELECT * FROM transaction";
+
+    public ResultSet refreshResult(String customerEmail){
+        try{
+            Connection connection = DriverManager.getConnection(dbURL, dbUsername, TopSecretFile.getDbPassword());
+            PreparedStatement preparedStatement = connection.prepareStatement(customerAccountQuery);
+            preparedStatement.setString(1, customerEmail);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet.next();
+            return resultSet;
+        } catch(SQLException e){
+            e.printStackTrace();
+        }
+        return null;
+    }
     boolean successfulLog = false;
 
     @Override
@@ -99,7 +116,7 @@ public class Employee extends RegisteredPerson {
                 Style style = new Style();
                 style.dash("                                  ");
                 System.out.printf(
-                        "Account Number: %d\n Email: %s\nOwner:%s %s\nChecking:%d\nStatus: %d\n",
+                        "Account Number: %d\nEmail: %s\nOwner:%s %s\nChecking:%d\nStatus: %d\n",
                         finalResult.getInt("customer_id"),
                         finalResult.getString("email"),
                         finalResult.getString("first_name"),
@@ -122,7 +139,7 @@ public class Employee extends RegisteredPerson {
 
             boolean exit = false;
             while(exit == false){
-                System.out.println("\n\n0 : View Accounts\n1 : Check Candidates\n2 : Logout\n3 : Change Customer Account Status");
+                System.out.println("\n\n0 : View Accounts\n1 : Check Candidates\n2 : Logout\n3 : Change Customer Account Status\n4 : View All Transactions");
                 byte userInput = scan.nextByte();
                 try {
                     if(userInput == 0){
@@ -132,11 +149,13 @@ public class Employee extends RegisteredPerson {
                             while(finalResult.next()){
                                 Style style = new Style();
                                 style.dash("                                  ");
-                                System.out.printf("ID: %d\n Owner:%s %s\nChecking:%d\n",
+                                System.out.printf("ID: %d\nEmail:%s\nOwner:%s %s\nChecking:%d\nStatus:%d\n",
                                         finalResult.getInt("customer_id"),
+                                        finalResult.getString("email"),
                                         finalResult.getString("first_name"),
                                         finalResult.getString("last_name"),
-                                        finalResult.getInt("checking_balance"));
+                                        finalResult.getInt("checking_balance"),
+                                        finalResult.getInt("active"));
                             }
                         } catch(SQLException e){
                             e.printStackTrace();
@@ -153,6 +172,9 @@ public class Employee extends RegisteredPerson {
                     }
                     if(userInput == 3){
                         changeCustomerStatus();
+                    }
+                    if(userInput == 4){
+                        showAllTransactions();
                     }
 
                 } catch(InputMismatchException e){
@@ -182,6 +204,32 @@ public class Employee extends RegisteredPerson {
             e.printStackTrace();
         }
 
+    }
+
+    public void showAllTransactions(){
+        style.dash();
+        try {
+            Connection connection = DriverManager.getConnection(dbURL, dbUsername, TopSecretFile.getDbPassword());
+            ResultSet resultSet = connection.createStatement().executeQuery(allTransactionQuery);
+            while(resultSet.next()){
+                System.out.printf("Transaction ID: %d\n" +
+                        "Customer ID:%d\n" +
+                        "Recipient ID: %d\n" +
+                        "Time Stamp: %tc\n" +
+                        "Withdrawn: %d\n" +
+                        "Deposited: %d\n",
+                        resultSet.getInt("transaction_id"),
+                        resultSet.getInt("customer_id"),
+                        resultSet.getInt("recipient_id"),
+                        resultSet.getTimestamp("time_stamp"),
+                        resultSet.getInt("withdraw"),
+                        resultSet.getInt("deposit"));
+                style.dash();
+            }
+            connection.close();
+        } catch(SQLException e){
+            e.printStackTrace();
+        }
     }
 }
 

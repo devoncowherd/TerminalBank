@@ -118,8 +118,9 @@ public class SignUpImpl implements SignUpInterface {
 
     @Override
     public void askPassword(){
-        while(this.password == null ){
+        while(this.password == null || this.password == "" || this.password == " "){
             System.out.println("Please input your password");
+            scan.nextLine();
             this.password = scan.nextLine();
         }
     }
@@ -131,16 +132,18 @@ public class SignUpImpl implements SignUpInterface {
             try {
                 int userInput = scan.nextInt();
                 if(userInput == 0) {
-                    validChoice = true;
                     while(this.initialBalance < 0){
                         System.out.println("How much would you like to deposit today?\n(Notice: Amount will be refunded in 7-10 business days if account not approved)");
                         try{
                             userInput = scan.nextInt();
                             if(userInput >= 0){
                                 this.initialBalance = userInput;
+                                validChoice = true;
                             }
                         } catch(InputMismatchException e){
-                            e.printStackTrace();
+                            scan.nextLine();
+                            //e.printStackTrace();
+                            System.out.println("Please enter only valid integer values");
                         }
                     }
                 }
